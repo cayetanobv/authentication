@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `tokenExchange` pre-defined OAuth2 flow key for OAuth 2.0 Token Exchange
+  ([RFC 8693](https://datatracker.ietf.org/doc/html/rfc8693)), with `tokenUrl` required,
+  mirroring the proposed OpenAPI addition
+  [OAI/OpenAPI-Specification#5428](https://github.com/OAI/OpenAPI-Specification/pull/5428)
+
 ## [v1.1.0] - 2023-04-28
 
 ### Changed

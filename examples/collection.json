@@ -45,6 +45,18 @@
         }
       }
     },
+    "token_exchange": {
+      "type": "oauth2",
+      "description": "exchange an identity token (e.g. from an openIdConnect scheme) for short-lived, scoped credentials (OAuth 2.0 Token Exchange, RFC 8693)",
+      "flows": {
+        "tokenExchange": {
+          "tokenUrl": "https://example.com/credentials/token",
+          "scopes": {
+            "read:example": "Read the example data"
+          }
+        }
+      }
+    },
     "signed_url_auth": {
       "type": "signedUrl",
       "description": "Requires an authentication API",

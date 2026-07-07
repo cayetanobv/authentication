@@ -79,7 +79,7 @@ library can be described, as well as a custom signed URL authentication scheme.
 | `name`             | string                                                       | `apiKey`              | **REQUIRED.** The name of the header, query, or cookie parameter to be used. |
 | `in`               | string                                                       | `apiKey`              | **REQUIRED.** The location of the API key (`query` \| `header` \| `cookie`). |
 | `scheme`           | string                                                       | `http`                | **REQUIRED.** The name of the HTTP Authorization scheme to be used in the [Authorization header as defined in RFC7235](https://tools.ietf.org/html/rfc7235#section-5.1).  The values used SHOULD be registered in the [IANA Authentication Scheme registry](https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml). (`basic` \| `bearer` \| `digest` \| `dpop` \| `hoba` \| `mutual` \| `negotiate` \| `oauth` (1.0) \| `privatetoken` \| `scram-sha-1` \| `scram-sha-256` \| `vapid`) |
-| `flows`            | Map<string, ([OAuth2 Flow Object](#oauth2-flow-object)\|[Signed URL Object](#signed-url-object))> | `oauth2`, `signedUrl` | **REQUIRED.** Scenarios an API client performs to get an access token from the authorization server. For `oauth2` the following keys are pre-defined for the corresponding OAuth flows: `authorizationCode` \| `implicit` \| `password ` \| `clientCredentials`. The OAuth2 Flow Object applies for `oauth2`, the Signed URL Object applies to `signedUrl`. |
+| `flows`            | Map<string, ([OAuth2 Flow Object](#oauth2-flow-object)\|[Signed URL Object](#signed-url-object))> | `oauth2`, `signedUrl` | **REQUIRED.** Scenarios an API client performs to get an access token from the authorization server. For `oauth2` the following keys are pre-defined for the corresponding OAuth flows: `authorizationCode` \| `implicit` \| `password ` \| `clientCredentials` \| `tokenExchange`. The OAuth2 Flow Object applies for `oauth2`, the Signed URL Object applies to `signedUrl`. |
 | `openIdConnectUrl` | string                                                       | `openIdConnect`       | **REQUIRED.** OpenID Connect URL to discover OpenID configuration values. This MUST be in the form of a URL. |
 
 The column "Applies to" specifies for which values of `type` the fields only apply.
@@ -89,11 +89,17 @@ They are also only required in this context.
 
 Based on the [OpenAPI OAuth Flow Object](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#oauth-flows-object).
 Allows configuration of the supported OAuth Flows.
+The `tokenExchange` flow corresponds to OAuth 2.0 Token Exchange as defined in
+[RFC 8693](https://datatracker.ietf.org/doc/html/rfc8693) (proposed for the OpenAPI
+OAuth Flows Object in [OAI/OpenAPI-Specification#5428](https://github.com/OAI/OpenAPI-Specification/pull/5428)):
+the client presents a token obtained through another scheme or flow (for example an
+OpenID Connect identity token) at the `tokenUrl` and receives a different token back,
+such as short-lived, scoped credentials for direct data access.
 
 | Field Name         | Type                    | Description                                                  |
 | ------------------ | ----------------------- | ------------------------------------------------------------ |
 | `authorizationUrl` | `string`                | **REQUIRED** for parent keys: `"implicit"`, `"authorizationCode"`. The authorization URL to be used for this flow. This MUST be in the form of a URL. |
-| `tokenUrl`         | `string`                | **REQUIRED** for parent keys: `"password"`, `"clientCredentials"`, `"authorizationCode"`. The token URL to be used for this flow. This MUST be in the form of a URL. |
+| `tokenUrl`         | `string`                | **REQUIRED** for parent keys: `"password"`, `"clientCredentials"`, `"authorizationCode"`, `"tokenExchange"`. The token URL to be used for this flow. This MUST be in the form of a URL. |
 | `scopes`           | Map<`string`, `string`> | **REQUIRED.** The available scopes for the authentication scheme. A map between the scope name and a short description for it. The map MAY be empty. |
 | `refreshUrl`       | `string`                | The URL to be used for obtaining refresh tokens. This MUST be in the form of a URL. |
 
