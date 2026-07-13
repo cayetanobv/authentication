@@ -105,6 +105,17 @@
       "auth:refs": [
         "signed_url_auth"
       ]
+    },
+    "example_exchanged": {
+      "href": "https://storage.example.com/private-bucket/file.xyz",
+      "title": "Asset read with credentials obtained via token exchange",
+      "type": "application/vnd.example",
+      "roles": [
+        "data"
+      ],
+      "auth:refs": [
+        "token_exchange"
+      ]
     }
   },
   "item_assets": {
