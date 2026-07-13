@@ -129,6 +129,8 @@ Definition for a request parameter.
 ## Examples
 
 `auth:schemes` may be referenced identically in a STAC Asset or Link objects. Examples of these two use-cases are provided below.
+A complete, focused example of the two-step token-exchange pattern (identity scheme + exchange scheme linked via `subjectTokenScheme`)
+is provided in [examples/collection-token-exchange.json](examples/collection-token-exchange.json).
 
 ### Schema definitions
 

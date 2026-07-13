@@ -1,0 +1,81 @@
+{
+  "type": "Collection",
+  "stac_version": "1.0.0",
+  "id": "collection-token-exchange",
+  "title": "Gated collection — two-step access via OAuth 2.0 Token Exchange",
+  "description": "Focused example of the two-step access pattern: the STAC metadata (this document) is public, while the data assets live in access-controlled object storage. Step 1: the client signs in via the `oidc` scheme and obtains an identity token. Step 2: it presents that token as the RFC 8693 `subject_token` at the `token_exchange` scheme's `tokenUrl` (declared by `subjectTokenScheme`) and receives short-lived, scoped credentials to read the assets directly. Note that the `oidc` scheme is intentionally not referenced by any `auth:refs`: it exists only as the exchange's input, which is exactly what `subjectTokenScheme` makes machine-discoverable.",
+  "license": "proprietary",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/authentication/v1.1.0/schema.json"
+  ],
+  "auth:schemes": {
+    "oidc": {
+      "type": "openIdConnect",
+      "description": "Step 1 — identity. Sign in via any OIDC client flow (e.g. Authorization Code + PKCE) to obtain an identity token.",
+      "openIdConnectUrl": "https://auth.example.com/.well-known/openid-configuration"
+    },
+    "token_exchange": {
+      "type": "oauth2",
+      "description": "Step 2 — credentials (OAuth 2.0 Token Exchange, RFC 8693). POST the identity token obtained via the `oidc` scheme as `subject_token` to the `tokenUrl`; receive short-lived, scoped credentials for direct reads of this collection's assets. One exchanged credential covers all assets below.",
+      "flows": {
+        "tokenExchange": {
+          "tokenUrl": "https://credentials.example.com/oauth/token",
+          "subjectTokenScheme": "oidc",
+          "scopes": {
+            "read:data": "Read this collection's data assets"
+          }
+        }
+      }
+    }
+  },
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -3.9,
+          40.3,
+          -3.5,
+          40.6
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2025-01-01T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "links": [
+    {
+      "href": "https://example.com/examples/collection-token-exchange.json",
+      "rel": "self"
+    }
+  ],
+  "assets": {
+    "data": {
+      "href": "https://storage.example.com/private-bucket/data.parquet",
+      "title": "Data file (access-controlled)",
+      "type": "application/vnd.apache.parquet",
+      "roles": [
+        "data"
+      ],
+      "auth:refs": [
+        "token_exchange"
+      ]
+    },
+    "metadata": {
+      "href": "https://storage.example.com/private-bucket/metadata.json",
+      "title": "Table metadata (access-controlled; same exchanged credentials)",
+      "type": "application/json",
+      "roles": [
+        "metadata"
+      ],
+      "auth:refs": [
+        "token_exchange"
+      ]
+    }
+  }
+}
