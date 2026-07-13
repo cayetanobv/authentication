@@ -95,11 +95,14 @@ OAuth Flows Object in [OAI/OpenAPI-Specification#5428](https://github.com/OAI/Op
 the client presents a token obtained through another scheme or flow (for example an
 OpenID Connect identity token) at the `tokenUrl` and receives a different token back,
 such as short-lived, scoped credentials for direct data access.
+The `subjectTokenScheme` field links the exchange to the scheme that supplies its input
+token, making the multi-step flow machine-discoverable; clients MUST use it when present.
 
 | Field Name         | Type                    | Description                                                  |
 | ------------------ | ----------------------- | ------------------------------------------------------------ |
 | `authorizationUrl` | `string`                | **REQUIRED** for parent keys: `"implicit"`, `"authorizationCode"`. The authorization URL to be used for this flow. This MUST be in the form of a URL. |
 | `tokenUrl`         | `string`                | **REQUIRED** for parent keys: `"password"`, `"clientCredentials"`, `"authorizationCode"`, `"tokenExchange"`. The token URL to be used for this flow. This MUST be in the form of a URL. |
+| `subjectTokenScheme` | `string`              | Applies to the parent key `"tokenExchange"`. The key of the `auth:schemes` entry whose token the client presents as the RFC 8693 `subject_token` at the `tokenUrl`. RECOMMENDED whenever more than one scheme is declared, so that a generic client can resolve the order of the steps from the document instead of hardcoding it. |
 | `scopes`           | Map<`string`, `string`> | **REQUIRED.** The available scopes for the authentication scheme. A map between the scope name and a short description for it. The map MAY be empty. |
 | `refreshUrl`       | `string`                | The URL to be used for obtaining refresh tokens. This MUST be in the form of a URL. |
 

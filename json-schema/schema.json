@@ -375,6 +375,10 @@
           "type": "string",
           "format": "uri"
         },
+        "subjectTokenScheme": {
+          "title": "Key of the auth:schemes entry whose token is presented as the subject_token (tokenExchange flow)",
+          "type": "string"
+        },
         "refreshUrl": {
           "title": "The URL to be used for obtaining refresh tokens",
           "type": "string",
