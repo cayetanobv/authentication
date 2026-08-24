@@ -9,9 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `tokenExchange` pre-defined OAuth2 flow key for OAuth 2.0 Token Exchange
-  ([RFC 8693](https://datatracker.ietf.org/doc/html/rfc8693)), with `tokenUrl` required,
-  mirroring the proposed OpenAPI addition
-  [OAI/OpenAPI-Specification#5428](https://github.com/OAI/OpenAPI-Specification/pull/5428)
+  ([RFC 8693](https://datatracker.ietf.org/doc/html/rfc8693)), with `tokenUrl` required
+- `subjectTokenScheme` field on the `tokenExchange` flow, naming the `auth:schemes`
+  entry whose token the client presents as the RFC 8693 `subject_token`; required for
+  that flow, so the multi-step exchange is discoverable from the document
 
 ## [v1.1.0] - 2023-04-28
 

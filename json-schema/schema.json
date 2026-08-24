@@ -302,6 +302,11 @@
                           "required": [
                             "tokenUrl"
                           ]
+                        },
+                        "^tokenExchange$": {
+                          "required": [
+                            "subjectTokenScheme"
+                          ]
                         }
                       }
                     }

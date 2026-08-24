@@ -90,19 +90,30 @@ They are also only required in this context.
 Based on the [OpenAPI OAuth Flow Object](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#oauth-flows-object).
 Allows configuration of the supported OAuth Flows.
 The `tokenExchange` flow corresponds to OAuth 2.0 Token Exchange as defined in
-[RFC 8693](https://datatracker.ietf.org/doc/html/rfc8693) (proposed for the OpenAPI
-OAuth Flows Object in [OAI/OpenAPI-Specification#5428](https://github.com/OAI/OpenAPI-Specification/pull/5428)):
-the client presents a token obtained through another scheme or flow (for example an
-OpenID Connect identity token) at the `tokenUrl` and receives a different token back,
-such as short-lived, scoped credentials for direct data access.
-The `subjectTokenScheme` field links the exchange to the scheme that supplies its input
-token, making the multi-step flow machine-discoverable; clients MUST use it when present.
+[RFC 8693](https://datatracker.ietf.org/doc/html/rfc8693).
+The client presents a token obtained through another scheme (for example an OpenID
+Connect identity token) at the `tokenUrl` as the `subject_token`, with
+`grant_type=urn:ietf:params:oauth:grant-type:token-exchange`, and receives a different
+security token back, such as short-lived, scoped credentials for direct data access.
+The response is the one defined in
+[RFC 8693, Section 2.2.1](https://datatracker.ietf.org/doc/html/rfc8693#section-2.2.1),
+which reports the kind of token issued in `issued_token_type`.
+
+`subjectTokenScheme` names the scheme that supplies the input token, which is what makes
+the multi-step flow machine-discoverable: without it a client can find the `tokenUrl` but
+cannot tell which of the declared schemes produces the token it has to present.
+Publishers MUST include it in a `tokenExchange` flow, and clients MUST use it when
+present.
+The RFC 8693 `subject_token_type` parameter follows from the referenced scheme's `type`,
+so it needs no separate field: for example
+`urn:ietf:params:oauth:token-type:id_token` for `openIdConnect`, or
+`urn:ietf:params:oauth:token-type:access_token` for `oauth2`.
 
 | Field Name         | Type                    | Description                                                  |
 | ------------------ | ----------------------- | ------------------------------------------------------------ |
 | `authorizationUrl` | `string`                | **REQUIRED** for parent keys: `"implicit"`, `"authorizationCode"`. The authorization URL to be used for this flow. This MUST be in the form of a URL. |
 | `tokenUrl`         | `string`                | **REQUIRED** for parent keys: `"password"`, `"clientCredentials"`, `"authorizationCode"`, `"tokenExchange"`. The token URL to be used for this flow. This MUST be in the form of a URL. |
-| `subjectTokenScheme` | `string`              | Applies to the parent key `"tokenExchange"`. The key of the `auth:schemes` entry whose token the client presents as the RFC 8693 `subject_token` at the `tokenUrl`. RECOMMENDED whenever more than one scheme is declared, so that a generic client can resolve the order of the steps from the document instead of hardcoding it. |
+| `subjectTokenScheme` | `string`              | **REQUIRED** for parent key: `"tokenExchange"`. The key of the `auth:schemes` entry whose token the client presents as the RFC 8693 `subject_token` at the `tokenUrl`. Lets a generic client resolve the order of the steps from the document instead of hardcoding it. |
 | `scopes`           | Map<`string`, `string`> | **REQUIRED.** The available scopes for the authentication scheme. A map between the scope name and a short description for it. The map MAY be empty. |
 | `refreshUrl`       | `string`                | The URL to be used for obtaining refresh tokens. This MUST be in the form of a URL. |
 
