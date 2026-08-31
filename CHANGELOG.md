@@ -10,9 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `tokenExchange` pre-defined OAuth2 flow key for OAuth 2.0 Token Exchange
   ([RFC 8693](https://datatracker.ietf.org/doc/html/rfc8693)), with `tokenUrl` required
-- `subjectTokenScheme` field on the `tokenExchange` flow, naming the `auth:schemes`
-  entry whose token the client presents as the RFC 8693 `subject_token`; required for
-  that flow, so the multi-step exchange is discoverable from the document
+- `auth:refs` allowed on an Authentication Scheme Object, declaring prerequisite
+  scheme(s) whose token this scheme consumes; required with exactly one entry for a
+  scheme declaring a `tokenExchange` flow (the referenced scheme's token is the
+  RFC 8693 `subject_token`), so the multi-step exchange is discoverable from the
+  document; reference chains must be acyclic
+- `subjectTokenType` field (optional) on the `tokenExchange` flow: the RFC 8693
+  `subject_token_type` URN, for when the referenced scheme yields more than one kind
+  of token; defaults from the referenced scheme's `type`
 
 ## [v1.1.0] - 2023-04-28
 

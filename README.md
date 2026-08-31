@@ -47,7 +47,7 @@ The fields in the table below can be used in these parts of STAC documents:
 
 | Field Name  | Type       | Description |
 | ----------- | ---------- | ----------- |
-| `auth:refs` | \[string\] | A property that specifies which schemes in `auth:schemes` may be used to access an Asset or Link. |
+| `auth:refs` | \[string\] | A property that specifies which schemes in `auth:schemes` may be used to access an Asset or Link. `auth:refs` MAY also appear on an [Authentication Scheme Object](#authentication-scheme-object) itself — nested inside `auth:schemes`, so within Catalogs, Collections and Item Properties — where it declares prerequisite scheme(s) instead — see below. |
 
 ### Scheme Types
 
@@ -76,6 +76,7 @@ library can be described, as well as a custom signed URL authentication scheme.
 | ------------------ | ------------------------------------------------------------ | --------------------- | ------------------------------------------------------------ |
 | `type`             | string                                                       | *All*                 | **REQUIRED**. The authentication scheme type used to access the data (`http` \| `s3` \| `signedUrl` \| `oauth2` \| `apiKey` \| `openIdConnect` \| a custom scheme type ). |
 | `description`      | string                                                       | *All*                 | Additional instructions for authentication. [CommonMark 0.29](https://commonmark.org/) syntax MAY be used for rich text representation. |
+| `auth:refs`        | \[string\]                                                  | *All*                 | Keys of other entries in `auth:schemes` that are prerequisites of this scheme: the referenced scheme(s) must be completed first and supply the input token for this one. **REQUIRED with exactly one entry** for an `oauth2` scheme declaring a `tokenExchange` flow (the referenced scheme's token is the RFC 8693 `subject_token`); MAY be used by other types, e.g. a `signedUrl` scheme naming the scheme whose token authenticates requests to its `authorizationApi`. References MUST NOT form cycles. |
 | `name`             | string                                                       | `apiKey`              | **REQUIRED.** The name of the header, query, or cookie parameter to be used. |
 | `in`               | string                                                       | `apiKey`              | **REQUIRED.** The location of the API key (`query` \| `header` \| `cookie`). |
 | `scheme`           | string                                                       | `http`                | **REQUIRED.** The name of the HTTP Authorization scheme to be used in the [Authorization header as defined in RFC7235](https://tools.ietf.org/html/rfc7235#section-5.1).  The values used SHOULD be registered in the [IANA Authentication Scheme registry](https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml). (`basic` \| `bearer` \| `digest` \| `dpop` \| `hoba` \| `mutual` \| `negotiate` \| `oauth` (1.0) \| `privatetoken` \| `scram-sha-1` \| `scram-sha-256` \| `vapid`) |
@@ -99,25 +100,44 @@ The response is the one defined in
 [RFC 8693, Section 2.2.1](https://datatracker.ietf.org/doc/html/rfc8693#section-2.2.1),
 which reports the kind of token issued in `issued_token_type`.
 
-`subjectTokenScheme` names the scheme that supplies the input token, which is what makes
-the multi-step flow machine-discoverable: without it a client can find the `tokenUrl` but
-cannot tell which of the declared schemes produces the token it has to present.
-Publishers MUST include it in a `tokenExchange` flow, and clients MUST use it when
-present.
-The RFC 8693 `subject_token_type` parameter follows from the referenced scheme's `type`,
-so it needs no separate field: for example
-`urn:ietf:params:oauth:token-type:id_token` for `openIdConnect`, or
-`urn:ietf:params:oauth:token-type:access_token` for `oauth2`.
+Which scheme supplies the input token is declared on the *scheme*, with `auth:refs`
+(see the [Authentication Scheme Object](#authentication-scheme-object)): a scheme
+declaring a `tokenExchange` flow MUST reference exactly one other scheme in `auth:refs`,
+and the token obtained through that referenced scheme is the `subject_token`. This is
+what makes the multi-step flow machine-discoverable — a client resolves the chain from
+the document (asset → guarding scheme → prerequisite scheme) instead of hardcoding the
+order — and it reuses the reference mechanism clients already implement for Assets and
+Links. Note the direction differs by position: on an Asset or Link, `auth:refs` lists
+*alternatives* (any referenced scheme may be used); on a scheme, it lists
+*prerequisites* (the referenced scheme must be completed first). References MUST NOT
+form cycles — clients cannot be expected to resolve one, and the JSON Schema cannot
+detect it.
+
+The RFC 8693 `subject_token_type` request parameter MUST be taken from the flow's
+`subjectTokenType` field when present. When the field is absent it follows from the referenced
+scheme's `type`: `urn:ietf:params:oauth:token-type:id_token` for `openIdConnect` and
+`urn:ietf:params:oauth:token-type:access_token` for `oauth2`. Publishers SHOULD set
+`subjectTokenType` explicitly whenever the referenced scheme yields more than one kind
+of token (an OpenID Connect provider issues both an ID token and an access token).
+
+To accept identities from more than one provider, declare one exchange scheme per
+identity scheme and list them all in the Asset's `auth:refs` — alternatives are
+expressed at the Asset/Link level, prerequisites at the scheme level, so each exchange
+scheme keeps exactly one prerequisite.
 
 | Field Name         | Type                    | Description                                                  |
 | ------------------ | ----------------------- | ------------------------------------------------------------ |
 | `authorizationUrl` | `string`                | **REQUIRED** for parent keys: `"implicit"`, `"authorizationCode"`. The authorization URL to be used for this flow. This MUST be in the form of a URL. |
 | `tokenUrl`         | `string`                | **REQUIRED** for parent keys: `"password"`, `"clientCredentials"`, `"authorizationCode"`, `"tokenExchange"`. The token URL to be used for this flow. This MUST be in the form of a URL. |
-| `subjectTokenScheme` | `string`              | **REQUIRED** for parent key: `"tokenExchange"`. The key of the `auth:schemes` entry whose token the client presents as the RFC 8693 `subject_token` at the `tokenUrl`. Lets a generic client resolve the order of the steps from the document instead of hardcoding it. |
+| `subjectTokenType` | `string`                | For parent key `"tokenExchange"`: the RFC 8693 `subject_token_type` URN of the token presented at the `tokenUrl` (e.g. `urn:ietf:params:oauth:token-type:id_token`). When absent, it follows from the `type` of the scheme referenced in the scheme's `auth:refs`. |
 | `scopes`           | Map<`string`, `string`> | **REQUIRED.** The available scopes for the authentication scheme. A map between the scope name and a short description for it. The map MAY be empty. |
 | `refreshUrl`       | `string`                | The URL to be used for obtaining refresh tokens. This MUST be in the form of a URL. |
 
 ### Signed URL Object
+
+A `signedUrl` scheme MAY declare the scheme that authenticates its `authorizationApi`
+requests via `auth:refs` on the scheme (see the
+[Authentication Scheme Object](#authentication-scheme-object)).
 
 | Field Name         | Type                                               | Description                                                  |
 | ------------------ | -------------------------------------------------- | ------------------------------------------------------------ |
@@ -140,7 +160,7 @@ Definition for a request parameter.
 ## Examples
 
 `auth:schemes` may be referenced identically in a STAC Asset or Link objects. Examples of these two use-cases are provided below.
-A complete, focused example of the two-step token-exchange pattern (identity scheme + exchange scheme linked via `subjectTokenScheme`)
+A complete, focused example of the two-step token-exchange pattern (identity scheme + exchange scheme linked via scheme-level `auth:refs`)
 is provided in [examples/collection-token-exchange.json](examples/collection-token-exchange.json).
 
 ### Schema definitions

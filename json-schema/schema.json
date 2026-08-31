@@ -84,7 +84,7 @@
         }
       ]
     }
-  ],  
+  ],
   "definitions": {
     "schemes_field": {
       "type": "object",
@@ -166,6 +166,13 @@
         "description": {
           "title": "Authentication scheme description",
           "type": "string"
+        },
+        "auth:refs": {
+          "title": "Keys of schemes in auth:schemes that are prerequisites of this scheme (their result is this scheme's input, e.g. the subject_token of a tokenExchange flow)",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "allOf": [
@@ -302,11 +309,6 @@
                           "required": [
                             "tokenUrl"
                           ]
-                        },
-                        "^tokenExchange$": {
-                          "required": [
-                            "subjectTokenScheme"
-                          ]
                         }
                       }
                     }
@@ -361,6 +363,39 @@
               "openIdConnectUrl": false
             }
           }
+        },
+        {
+          "$comment": "A tokenExchange flow consumes another scheme's token: the scheme must reference exactly one prerequisite scheme, whose token is the RFC 8693 subject_token.",
+          "if": {
+            "type": "object",
+            "required": [
+              "flows"
+            ],
+            "properties": {
+              "type": {
+                "const": "oauth2"
+              },
+              "flows": {
+                "type": "object",
+                "required": [
+                  "tokenExchange"
+                ]
+              }
+            }
+          },
+          "then": {
+            "type": "object",
+            "required": [
+              "auth:refs"
+            ],
+            "properties": {
+              "auth:refs": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 1
+              }
+            }
+          }
         }
       ]
     },
@@ -380,9 +415,14 @@
           "type": "string",
           "format": "uri"
         },
-        "subjectTokenScheme": {
-          "title": "Key of the auth:schemes entry whose token is presented as the subject_token (tokenExchange flow)",
-          "type": "string"
+        "subjectTokenType": {
+          "title": "RFC 8693 subject_token_type URN of the token presented at the tokenUrl (tokenExchange flow)",
+          "type": "string",
+          "format": "uri",
+          "examples": [
+            "urn:ietf:params:oauth:token-type:id_token",
+            "urn:ietf:params:oauth:token-type:access_token"
+          ]
         },
         "refreshUrl": {
           "title": "The URL to be used for obtaining refresh tokens",

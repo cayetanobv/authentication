@@ -3,7 +3,7 @@
   "stac_version": "1.0.0",
   "id": "collection-token-exchange",
   "title": "Gated collection — two-step access via OAuth 2.0 Token Exchange",
-  "description": "Public STAC metadata, access-controlled assets. The asset points at the scheme that guards it (`auth:refs`); that scheme points at the identity whose token it exchanges (`subjectTokenScheme`). The `oidc` scheme guards nothing on its own: it is the exchange's input.",
+  "description": "Public STAC metadata, access-controlled assets. The asset points at the scheme that guards it (`auth:refs`); that scheme points at its prerequisite the same way (scheme-level `auth:refs`): the identity whose token it exchanges. The `oidc` scheme guards no asset on its own: it is the exchange's input.",
   "license": "proprietary",
   "stac_extensions": [
     "https://stac-extensions.github.io/authentication/v1.1.0/schema.json"
@@ -16,10 +16,13 @@
     "token_exchange": {
       "type": "oauth2",
       "description": "RFC 8693 token exchange: present the `oidc` identity token as the `subject_token` at the `tokenUrl` and receive short-lived, scoped credentials covering every asset below.",
+      "auth:refs": [
+        "oidc"
+      ],
       "flows": {
         "tokenExchange": {
           "tokenUrl": "https://credentials.example.com/oauth/token",
-          "subjectTokenScheme": "oidc",
+          "subjectTokenType": "urn:ietf:params:oauth:token-type:id_token",
           "scopes": {
             "read:data": "Read this collection's data assets"
           }
