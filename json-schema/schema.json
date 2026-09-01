@@ -168,7 +168,7 @@
           "type": "string"
         },
         "auth:refs": {
-          "title": "Keys of schemes in auth:schemes that are prerequisites of this scheme (their result is this scheme's input, e.g. the subject_token of a tokenExchange flow)",
+          "title": "Keys of schemes in auth:schemes that may supply this scheme's input (any one of them is completed first; its result is this scheme's input, e.g. the subject_token of a tokenExchange flow)",
           "type": "array",
           "items": {
             "type": "string"
@@ -365,7 +365,7 @@
           }
         },
         {
-          "$comment": "A tokenExchange flow consumes another scheme's token: the scheme must reference exactly one prerequisite scheme, whose token is the RFC 8693 subject_token.",
+          "$comment": "A tokenExchange flow consumes another scheme's token: the scheme must reference at least one scheme; the token obtained through whichever one the client uses is the RFC 8693 subject_token.",
           "if": {
             "type": "object",
             "required": [
@@ -391,8 +391,7 @@
             "properties": {
               "auth:refs": {
                 "type": "array",
-                "minItems": 1,
-                "maxItems": 1
+                "minItems": 1
               }
             }
           }

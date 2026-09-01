@@ -3,7 +3,7 @@
   "stac_version": "1.0.0",
   "id": "collection-token-exchange",
   "title": "Gated collection — two-step access via OAuth 2.0 Token Exchange",
-  "description": "Public STAC metadata, access-controlled assets. The asset points at the scheme that guards it (`auth:refs`); that scheme points at its prerequisite the same way (scheme-level `auth:refs`): the identity whose token it exchanges. The `oidc` scheme guards no asset on its own: it is the exchange's input.",
+  "description": "Public STAC metadata, access-controlled assets. The asset points at the scheme that guards it (`auth:refs`); that scheme points the same way (scheme-level `auth:refs`) at the identity scheme(s) whose token it exchanges — any one of them. The `oidc` scheme guards no asset on its own: it is the exchange's input.",
   "license": "proprietary",
   "stac_extensions": [
     "https://stac-extensions.github.io/authentication/v1.1.0/schema.json"
