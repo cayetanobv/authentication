@@ -107,6 +107,63 @@
       },
       "additionalProperties": false
     },
+    "openid_connect_client": {
+      "type": "object",
+      "required": [
+        "clientId",
+        "grantTypes"
+      ],
+      "properties": {
+        "clientId": {
+          "title": "Public OAuth 2.0 client identifier",
+          "type": "string"
+        },
+        "grantTypes": {
+          "title": "Grant types the client supports, with a +pkce suffix when used with PKCE",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "implicit",
+              "authorization_code",
+              "authorization_code+pkce",
+              "urn:ietf:params:oauth:grant-type:device_code",
+              "urn:ietf:params:oauth:grant-type:device_code+pkce",
+              "refresh_token"
+            ]
+          }
+        },
+        "redirectUrls": {
+          "title": "Redirect URLs registered for the client",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "grantTypes": {
+            "contains": {
+              "enum": [
+                "implicit",
+                "authorization_code",
+                "authorization_code+pkce"
+              ]
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "redirectUrls"
+        ]
+      }
+    },
     "refs_field": {
       "type": "object",
       "properties": {
@@ -355,9 +412,13 @@
                 "title": "This URL returns a JSON listing of the OpenID/OAuth endpoints, supported scopes and claims, public keys used to sign the tokens, and other details",
                 "type": "string"
               },
-              "clientId": {
-                "title": "Public OAuth 2.0 client identifier to sign in with at the OpenID Connect provider",
-                "type": "string"
+              "clients": {
+                "title": "Clients that can sign in at the OpenID Connect provider without a client secret",
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/definitions/openid_connect_client"
+                }
               }
             }
           },

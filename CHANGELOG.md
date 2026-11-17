@@ -8,8 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `clientId` field (optional) on `openIdConnect` schemes: the public OAuth 2.0 client
-  identifier a client signs in with at the OpenID Connect provider
+- `clients` field (optional) on `openIdConnect` schemes: clients that can sign in at the
+  OpenID Connect provider without a client secret, with their grant types and redirect URLs
+  (OpenID Connect Client Object, following openEO's default clients)
 
 ## [v1.2.0] - 2026-09-01
 

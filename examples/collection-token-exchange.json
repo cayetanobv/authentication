@@ -12,7 +12,23 @@
     "oidc": {
       "type": "openIdConnect",
       "openIdConnectUrl": "https://auth.example.com/.well-known/openid-configuration",
-      "clientId": "stac-browser"
+      "clients": [
+        {
+          "clientId": "stac-browser",
+          "grantTypes": [
+            "authorization_code+pkce"
+          ],
+          "redirectUrls": [
+            "https://radiantearth.github.io/stac-browser/auth"
+          ]
+        },
+        {
+          "clientId": "stac-cli",
+          "grantTypes": [
+            "urn:ietf:params:oauth:grant-type:device_code"
+          ]
+        }
+      ]
     },
     "token_exchange": {
       "type": "oauth2",

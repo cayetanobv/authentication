@@ -82,7 +82,7 @@ library can be described, as well as a custom signed URL authentication scheme.
 | `scheme`           | string                                                       | `http`                | **REQUIRED.** The name of the HTTP Authorization scheme to be used in the [Authorization header as defined in RFC7235](https://tools.ietf.org/html/rfc7235#section-5.1).  The values used SHOULD be registered in the [IANA Authentication Scheme registry](https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml). (`basic` \| `bearer` \| `digest` \| `dpop` \| `hoba` \| `mutual` \| `negotiate` \| `oauth` (1.0) \| `privatetoken` \| `scram-sha-1` \| `scram-sha-256` \| `vapid`) |
 | `flows`            | Map<string, ([OAuth2 Flow Object](#oauth2-flow-object)\|[Signed URL Object](#signed-url-object))> | `oauth2`, `signedUrl` | **REQUIRED.** Scenarios an API client performs to get an access token from the authorization server. For `oauth2` the following keys are pre-defined for the corresponding OAuth flows: `authorizationCode` \| `implicit` \| `password` \| `clientCredentials` \| `tokenExchange`. The OAuth2 Flow Object applies for `oauth2`, the Signed URL Object applies to `signedUrl`. |
 | `openIdConnectUrl` | string                                                       | `openIdConnect`       | **REQUIRED.** OpenID Connect URL to discover OpenID configuration values. This MUST be in the form of a URL. |
-| `clientId`         | string                                                       | `openIdConnect`       | The OAuth 2.0 client identifier a client uses to sign in with the OpenID Connect provider, e.g. a browser using the Authorization Code flow with PKCE. This MUST be a public client identifier, never a client secret. |
+| `clients`          | \[[OpenID Connect Client Object](#openid-connect-client-object)\] | `openIdConnect`       | Clients that can sign in at the OpenID Connect provider without a client secret. |
 
 The column "Applies to" specifies for which values of `type` the fields only apply.
 They are also only required in this context.
@@ -126,6 +126,10 @@ Since the field applies to the flow as a whole, referenced alternatives requirin
 *different* `subject_token_type` values SHOULD be split into separate exchange
 schemes.
 
+When the referenced `openIdConnect` scheme lists `clients`, the service at the `tokenUrl`
+SHOULD accept identity tokens issued to any of them: an ID token's audience (`aud`) is the
+client it was issued to.
+
 To accept identities from more than one provider, list the identity schemes as
 alternatives in the exchange scheme's own `auth:refs` — a token obtained through any
 one of them is exchanged at the same `tokenUrl`.
@@ -137,6 +141,29 @@ one of them is exchanged at the same `tokenUrl`.
 | `subjectTokenType` | `string`                | For parent key `"tokenExchange"`: the RFC 8693 `subject_token_type` URN of the token presented at the `tokenUrl` (e.g. `urn:ietf:params:oauth:token-type:id_token`). When absent, it follows from the `type` of the scheme in the scheme's `auth:refs` through which the token was obtained. |
 | `scopes`           | Map<`string`, `string`> | **REQUIRED.** The available scopes for the authentication scheme. A map between the scope name and a short description for it. The map MAY be empty. |
 | `refreshUrl`       | `string`                | The URL to be used for obtaining refresh tokens. This MUST be in the form of a URL. |
+
+### OpenID Connect Client Object
+
+Describes a client registered at the OpenID Connect provider that can be used without a
+client secret, e.g. by a browser or a command-line client that isn't configured for this
+provider. A client ID alone isn't enough for that: the provider only accepts the redirect
+URLs registered for the client, and on a mismatch it doesn't redirect back
+([RFC 6749, Section 4.1.2.1](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1)),
+so the client couldn't tell why sign-in failed. The grant types and redirect URLs let a client
+check up front whether it can use an entry. The fields follow the default clients in the
+[openEO API](https://api.openeo.org/#tag/Account-Management/operation/authenticate-oidc).
+
+| Field Name     | Type       | Description |
+| -------------- | ---------- | ----------- |
+| `clientId`     | `string`   | **REQUIRED.** The OAuth 2.0 client identifier. This is public, never a client secret. |
+| `grantTypes`   | \[string\] | **REQUIRED.** The grant types the client supports, with a `+pkce` suffix when used with PKCE ([RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636)): `implicit` \| `authorization_code` \| `authorization_code+pkce` \| `urn:ietf:params:oauth:grant-type:device_code` \| `urn:ietf:params:oauth:grant-type:device_code+pkce` \| `refresh_token`. |
+| `redirectUrls` | \[string\] | The redirect URLs registered for the client. **REQUIRED** if `grantTypes` contains `implicit`, `authorization_code` or `authorization_code+pkce`. |
+
+A client uses the first entry whose grant type it supports and, for a grant type that
+redirects, whose `redirectUrls` contain its own redirect URL exactly (`redirectUrls` are
+exact URLs, without wildcards). If no entry matches,
+it falls back to its own configuration for the provider. The provider can change or revoke
+these clients at any time, so clients SHOULD NOT store them for later use.
 
 ### Signed URL Object
 
